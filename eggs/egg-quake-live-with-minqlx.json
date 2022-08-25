@@ -6,8 +6,8 @@
     },
     "exported_at": "2022-08-25T17:39:36+02:00",
     "name": "Quake Live with minqlx",
-    "author": "patz.michael@gmail.com",
-    "description": "Quake Live is a first-person shooter video game by id Software. It is an updated version of Quake III Arena that was originally designed as a free-to-play game launched via a web browser plug-in. On September 17, 2014, the game was re-launched as a standalone title on Steam.",
+    "author": "jone79@gmail.com",
+    "description": "Quake Live with minqlx support",
     "features": [
         "steam_disk_space"
     ],
