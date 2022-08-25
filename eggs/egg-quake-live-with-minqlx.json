@@ -1,0 +1,154 @@
+{
+    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": "2022-08-25T17:39:36+02:00",
+    "name": "Quake Live with minqlx",
+    "author": "patz.michael@gmail.com",
+    "description": "Quake Live is a first-person shooter video game by id Software. It is an updated version of Quake III Arena that was originally designed as a free-to-play game launched via a web browser plug-in. On September 17, 2014, the game was re-launched as a standalone title on Steam.",
+    "features": [
+        "steam_disk_space"
+    ],
+    "docker_images": {
+        "quay.io\/parkervcp\/pterodactyl-images:ubuntu_source": "quay.io\/parkervcp\/pterodactyl-images:ubuntu_source"
+    },
+    "file_denylist": [],
+    "startup": ".\/run_server_x64_minqlx.sh +set net_port \"{{SERVER_PORT}}\" +set sv_hostname \"{{SERVER_NAME}}\" +set sv_serverType \"{{SERVER_TYPE}}\" +set g_password \"{{PASSWORD}}\" +sv_fps \"{{FPS}}\" +set g_gametype \"{{G_GAMETYPE}}\" +set qlx_redisAddress \"{{REDIS_HOST}}\" +set qlx_redisPort \"{{REDIS_PORT}}\" +set qlx_redisPassword \"{{REDIS_PASSWORD}}\" +set qlx_owner \"{{QLX_OWNER}}\" +set qlx_plugins \"{{QLX_PLUGINS}}\" +set qlx_redisDatabase \"{{REDIS_DATABASE}}\"",
+    "config": {
+        "files": "{}",
+        "startup": "{\r\n    \"done\": \"zmq stats and rcon passwords updated\",\r\n    \"userInteraction\": []\r\n}",
+        "logs": "{\r\n    \"custom\": false,\r\n    \"location\": \"logs\/latest.log\"\r\n}",
+        "stop": "quit"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!\/bin\/bash\r\n# Quake Live with minqlx Installation Script\r\n#\r\n# Server Files: \/mnt\/server\r\nexport DEBIAN_FRONTEND=noninteractive\r\nexport DISPLAY=\r\nexport PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring\r\nexport PIP_ROOT_USER_ACTION=ignore\r\n\r\napt -y update\r\n\r\nln -fs \/usr\/share\/zoneinfo\/Europe\/Madrid \/etc\/localtime\r\napt-get install -y --no-install-recommends tzdata\r\ndpkg-reconfigure -f noninteractive tzdata\r\n\r\napt install -y software-properties-common apt-utils\r\nadd-apt-repository --yes ppa:deadsnakes\/ppa\r\n\r\napt -y update\r\napt -y --no-install-recommends install locales curl lib32gcc1 ca-certificates libstdc++6 libz1 python3.9 python3.9-dev python3-dev wget redis-server git build-essential python3.9-distutils libpython3.9-dev python3-pip\r\n\r\nlocale-gen --purge en_US.UTF-8\r\necho -e 'LANG=\"en_US.UTF-8\"\\nLANGUAGE=\"en_US:en\"\\n' > \/etc\/default\/locale\r\n\r\n\/etc\/init.d\/redis-server start\r\nredis-cli ping\r\n\r\ncd \/tmp\r\n\r\n\r\n#curl https:\/\/bootstrap.pypa.io\/get-pip.py -o get-pip.py\r\n#python3.9 get-pip.py\r\n#rm get-pip.py\r\n\r\npip3 install redis --no-input\r\ncurl -sSL -o steamcmd.tar.gz http:\/\/media.steampowered.com\/installer\/steamcmd_linux.tar.gz\r\nmkdir -p \/mnt\/server\/steamcmd \/mnt\/server\/logs\r\ntar -xzvf steamcmd.tar.gz -C \/mnt\/server\/steamcmd\r\ncd \/mnt\/server\/steamcmd\r\n\r\n# SteamCMD fails otherwise for some reason, even running as root.\r\n# This is changed at the end of the install process anyways.\r\nchown -R root:root \/mnt\r\n\r\nexport HOME=\/mnt\/server\r\n.\/steamcmd.sh +force_install_dir \/mnt\/server +login anonymous +app_update 349090 +quit\r\n\r\nmkdir -p \/mnt\/server\/.steam\/sdk32\r\ncp -v linux32\/steamclient.so ..\/.steam\/sdk32\/steamclient.so\r\n\r\n#minqlx\r\ncd \/mnt\/server\r\nrm -rf minqlx\r\ngit clone https:\/\/github.com\/MinoMino\/minqlx.git\r\ncd minqlx\r\nmake\r\ncp -r bin\/* \/mnt\/server\r\ncd \/mnt\/server\r\n\r\n#minqlx plugins\r\nrm -rf \/mnt\/server\/minqlx-plugins\r\ngit clone https:\/\/github.com\/MinoMino\/minqlx-plugins.git\r\npip3 install -v -r minqlx-plugins\/requirements.txt --no-input --user\r\n\r\n# adding extra plugins\r\ncd \/mnt\/server\/minqlx-plugins\r\n\r\n# branding\r\nwget https:\/\/raw.githubusercontent.com\/tjone270\/Quake-Live\/master\/minqlx-plugins\/branding.py\r\n\r\n#centerprint\r\nwget https:\/\/raw.githubusercontent.com\/dsverdlo\/minqlx-plugins\/master\/centerprint.py\r\n\r\n#commands\r\nwget https:\/\/raw.githubusercontent.com\/BarelyMiSSeD\/minqlx-plugins\/blob\/master\/commands.py\r\n\r\n#discordbot\r\nwget https:\/\/raw.githubusercontent.com\/roasticle\/minqlx-plugins\/blob\/master\/discordbot.py\r\n\r\n#commlink\r\nwget https:\/\/raw.githubusercontent.com\/tjone270\/Quake-Live\/master\/minqlx-plugins\/commlink.py\r\n\r\n#fragstats\r\nwget https:\/\/raw.githubusercontent.com\/mgaertne\/minqlx-plugin-tests\/master\/src\/main\/python\/frag_stats.py\r\n\r\n#elocheck\r\nwget https:\/\/raw.githubusercontent.com\/mgaertne\/minqlx-plugin-tests\/master\/src\/main\/python\/elocheck.py\r\n\r\n#midair\r\nwget https:\/\/raw.githubusercontent.com\/x0rnn\/minqlx-plugins\/master\/midair.py\r\n\r\n#onjoin\r\nwget https:\/\/raw.githubusercontent.com\/tjone270\/Quake-Live\/master\/minqlx-plugins\/onjoin.py\r\n\r\n#midair_only\r\nwget https:\/\/raw.githubusercontent.com\/x0rnn\/minqlx-plugins\/master\/midair_only.py\r\n\r\n#mydiscordbot\r\nwget https:\/\/raw.githubusercontent.com\/mgaertne\/minqlx-plugin-tests\/master\/src\/main\/python\/mydiscordbot.py\r\n\r\n#myessentials\r\nwget https:\/\/raw.githubusercontent.com\/dsverdlo\/minqlx-plugins\/master\/myessentials.py\r\n\r\n#myfun (replacement for fun.py)\r\nwget https:\/\/raw.githubusercontent.com\/BarelyMiSSeD\/minqlx-plugins\/master\/myFun\/myFun.py\r\n\r\n#playerinfo\r\nwget https:\/\/raw.githubusercontent.com\/dsverdlo\/minqlx-plugins\/master\/player_info.py\r\n\r\n#pummel\r\nwget https:\/\/raw.githubusercontent.com\/mattiZed\/minqlx-plugins\/master\/pummel.py\r\n\r\n#q3resolver\r\nwget https:\/\/raw.githubusercontent.com\/tjone270\/Quake-Live\/master\/minqlx-plugins\/q3resolver.py\r\n\r\n#stats\r\nwget https:\/\/raw.githubusercontent.com\/x0rnn\/minqlx-plugins\/master\/stats.py\r\n\r\n#specs\r\nwget https:\/\/raw.githubusercontent.com\/x0rnn\/minqlx-plugins\/master\/specs.py\r\n\r\n#sv_fps\r\nwget https:\/\/raw.githubusercontent.com\/tjone270\/Quake-Live\/master\/minqlx-plugins\/sv_fps.py\r\n\r\n#thirtysecwarn\r\nwget https:\/\/github.com\/mgaertne\/minqlx-plugin-tests\/blob\/master\/src\/main\/python\/thirtysecwarn.py\r\n\r\n#translate\r\nwget https:\/\/github.com\/dsverdlo\/minqlx-plugins\/blob\/master\/translate.py\r\n\r\n#uberstats\r\nwget https:\/\/raw.githubusercontent.com\/roasticle\/minqlx-plugins\/master\/uberstats.py\r\n\r\n#votestats\r\nwget https:\/\/raw.githubusercontent.com\/tjone270\/Quake-Live\/master\/minqlx-plugins\/votestats.py\r\n\r\n# TODO\r\n# - Install requirements (python) for selected plugins\r\n# - setup plugins one by one as some requires customisation\r\n# - setup workshop for sounds and extra maps\r\n\r\necho \"Finished!\"",
+            "container": "ubuntu:18.04",
+            "entrypoint": "bash"
+        }
+    },
+    "variables": [
+        {
+            "name": "ld lib path",
+            "description": "",
+            "env_variable": "LD_LIBRARY_PATH",
+            "default_value": ".\/linux64",
+            "user_viewable": false,
+            "user_editable": false,
+            "rules": "required|string|max:20",
+            "field_type": "text"
+        },
+        {
+            "name": "Server Name",
+            "description": "The Name that will show up in the Serverbrowser",
+            "env_variable": "SERVER_NAME",
+            "default_value": "QuakeLive LanParty Server",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:70",
+            "field_type": "text"
+        },
+        {
+            "name": "Server Type",
+            "description": "0 = Offline, 1 = LAN, 2 = Internet",
+            "env_variable": "SERVER_TYPE",
+            "default_value": "2",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|numeric|max:2",
+            "field_type": "text"
+        },
+        {
+            "name": "Server Password",
+            "description": "Set a server-wide password, and stop all users from connecting without it",
+            "env_variable": "PASSWORD",
+            "default_value": "lanparty",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string|max:20",
+            "field_type": "text"
+        },
+        {
+            "name": "FPS",
+            "description": "Change how many frames the server runs per second. WARNING: Has not been tested extensively, and will have a direct impact on CPU and network usage!",
+            "env_variable": "FPS",
+            "default_value": "120",
+            "user_viewable": true,
+            "user_editable": false,
+            "rules": "required|numeric",
+            "field_type": "text"
+        },
+        {
+            "name": "Game Type",
+            "description": "0 = Free for All\r\n1 = Tournament\r\n2 = Race\r\n3 = Team Deathmatch\r\n4 = Clan Arena\r\n5 = Capture the Flag\r\n6 = One-Flag CTF\r\n7 = Overload\r\n8 = Harvester\r\n9 = Freeze Tag",
+            "env_variable": "G_GAMETYPE",
+            "default_value": "4",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|numeric|max:9",
+            "field_type": "text"
+        },
+        {
+            "name": "Redis host",
+            "description": "minqlx makes use of redis. You already have a Redis server instance running at pterodactyl host so you need to edit host's \/etc\/redis\/redis.conf and set\r\n\r\nbind 0.0.0.0\r\nset protectedMode no\r\nrequirepass yourpassword \r\n\r\n...and maybe reset ufw with sudo ufw reset\r\n\r\nYou need to set that password for pterodactyl to work so edit \/var\/www\/pterodactyl\/.env and set the new redis password. Otherwise pterodactyl panel will stop working.\r\n\r\n172.18.0.1 is the host's ip from within a container, so you might not need to change it.",
+            "env_variable": "REDIS_HOST",
+            "default_value": "172.18.0.1",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:40",
+            "field_type": "text"
+        },
+        {
+            "name": "Redis password",
+            "description": "",
+            "env_variable": "REDIS_PASSWORD",
+            "default_value": "lanpartyredis",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:64",
+            "field_type": "text"
+        },
+        {
+            "name": "Redis port",
+            "description": "",
+            "env_variable": "REDIS_PORT",
+            "default_value": "6379",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|numeric|max:65565",
+            "field_type": "text"
+        },
+        {
+            "name": "qlx_owner",
+            "description": "steamID64 of the owner. Get yours at https:\/\/www.steamidfinder.com\/",
+            "env_variable": "QLX_OWNER",
+            "default_value": "76561198004911379",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:20",
+            "field_type": "text"
+        },
+        {
+            "name": "qlx plugins",
+            "description": "A comma-separated list of plugins that should be loaded at launch.\r\n    Default: plugin_manager, essentials, motd, permission, ban, silence, clan, names, log, workshop, balance, fun\r\nhttps:\/\/github.com\/MinoMino\/minqlx-plugins",
+            "env_variable": "QLX_PLUGINS",
+            "default_value": "plugin_manager, essentials, motd, permission, ban, silence, clan, names, log, workshop, balance, fun",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:2000",
+            "field_type": "text"
+        },
+        {
+            "name": "Redis database",
+            "description": "id of the redis db used for minqlx stats. Default 1 as 0 is used for pterodactyl",
+            "env_variable": "REDIS_DATABASE",
+            "default_value": "1",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|numeric|max:16",
+            "field_type": "text"
+        }
+    ]
+}
